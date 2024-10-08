@@ -3,8 +3,7 @@ import numpy as np
 
 class NeuralNetwork:
     def __init__(self, inputSize, layerSizes):
-        #np.random.rand(layerSize)
-        self.biases = [np.array([0]*layerSize) for layerSize in layerSizes]
+        self.biases = [np.random.rand(layerSize) for layerSize in layerSizes]
         layerSizes.insert(0, inputSize)
         self.weights = [np.random.rand(layerSizes[i], layerSizes[i - 1]) for i in range(1, len(layerSizes))]
 
@@ -18,20 +17,25 @@ class NeuralNetwork:
     def backward(self, inputs, tags, growthSpeed=1):
         sigmoid_prime = lambda x: x * (1 - x)
         output = self.forward(inputs)
-        z = (output - np.array(tags))*sigmoid_prime(output)
-        self.weights += np.outer(z, self.activation[-2])*growthSpeed
-        print(self.weights)
+        Z = [(np.array(tags) - output) * sigmoid_prime(output)]
+        for layer, weights in enumerate(self.weights[:1:-1], 2):
+            Z.append(np.dot(weights.T, Z[-1])*sigmoid_prime(self.activation[-layer]))
+        Z = Z[::-1]
+        for layer in range(len(Z)):
+            self.weights[layer] += np.outer(Z[layer], self.activation[layer])*growthSpeed
+            self.biases[layer] += Z[layer]*growthSpeed
+
 
 
 speed = 1
-XOR = NeuralNetwork(2, [1])
+XOR = NeuralNetwork(2, [2, 1])
 print(XOR.weights)
 for i in range(100):
     XOR.backward([0,0], 0, speed)
     XOR.backward([0,1], 1, speed)
     XOR.backward([1,0], 1, speed)
     XOR.backward([1,1], 0, speed)
-
+print(XOR.weights)
 while True:
     print(XOR.forward(list(map(int, input().split()))))
 
