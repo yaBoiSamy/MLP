@@ -19,9 +19,8 @@ class NeuralNetwork:
 
     def forward(self, inputs):
         self.activations = [np.array(inputs)]
-        for weights, biases in zip(self.weights[:-1], self.biases[:-1]):
+        for weights, biases in zip(self.weights, self.biases):
             self.activations.append(self.smushFunc(np.dot(weights, self.activations[-1]) + biases))
-        self.activations.append(np.dot(self.weights[-1], self.activations[-1]) + self.biases[-1])
         return self.activations[-1]
 
     def backward(self, inputs, tags):
@@ -50,27 +49,26 @@ def train(NNs, inputs, expected):
 def evaluate(NNs, inputs, expected):
     scorePrefixes = [0 for NN in NNs]
     for inputt, answer in zip(inputs, expected):
-
         for i, NN in enumerate(NNs):
             scorePrefixes[i] += sum(NN.answerQuality(inputt, answer))/len(answer)
     return {scorePrefix/len(inputs):NN for scorePrefix, NN in zip(scorePrefixes, NNs)}
 
 
-adders = [NeuralNetwork(2, [random.randint(1, 4), 1], random.uniform(0.01, 0.3)) for i in range(100)] # Initialize MLPs
-DATASET = [[random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)] for i in range(10000)] # Create the training inputs
-TAGS = [sum(data) for data in DATASET] # Create the training answers
-train(adders, DATASET, TAGS)
+multipliers = [NeuralNetwork(2, [random.randint(1, 4) for i in range(random.randint(1, 3))] + [1], random.uniform(0.05, 0.005)) for i in range(100)] # Initialize MLPs
+DATASET = [[random.uniform(0.1, 1), random.uniform(0.1, 1)] for i in range(1000)] # Create the training inputs
+TAGS = [[data[0]*data[1]] for data in DATASET] # Create the training answers
+train(multipliers, DATASET, TAGS)
 
-TESTCASES = [[random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)] for i in range(100)] # Create the testcases
-TESTCASE_ANSWERS = [[sum(inputt)] for inputt in TESTCASES] # Generate the answers to these tescases
-adders = evaluate(adders, TESTCASES, TESTCASE_ANSWERS) # Evaluate general performance
+TESTCASES = [[random.uniform(0.1, 1), random.uniform(0.1, 1)] for i in range(100)] # Create the testcases
+TESTCASE_ANSWERS = [[inputt[0]*inputt[1]] for inputt in TESTCASES] # Generate the answers to these tescases
+multipliers = evaluate(multipliers, TESTCASES, TESTCASE_ANSWERS) # Evaluate general performance
 
 
-bestScores = list(map(float, sorted(adders.keys())))
+bestScores = list(map(float, sorted(multipliers.keys())))
 print("best scores:", bestScores[:10])
 print("worst scores:", bestScores[-10:])
 
-bestAI = adders[bestScores[0]]
+bestAI = multipliers[bestScores[0]]
 print("\nbest MLP stats:")
 print("  structure -", bestAI.layers)
 print("  growth speed - ", bestAI.growthSpeed, "\n")
@@ -79,4 +77,4 @@ while True: # Test the best MLP
     inputs = list(map(float, input("Enter AI inputs: ").split()))
     networkResults = bestAI.forward(inputs)
     print("  network results -", networkResults)
-    print("  answer score -", bestAI.answerQuality(inputs, sum(inputs)), "\n")
+    print("  answer score -", bestAI.answerQuality(inputs, [inputs[0]*inputs[1]]), "\n")
