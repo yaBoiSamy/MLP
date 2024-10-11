@@ -54,8 +54,8 @@ def evaluate(NNs, inputs, expected):
     return {scorePrefix/len(inputs):NN for scorePrefix, NN in zip(scorePrefixes, NNs)}
 
 
-multipliers = [NeuralNetwork(2, [random.randint(1, 4) for i in range(random.randint(1, 3))] + [1], random.uniform(0.05, 0.005)) for i in range(100)] # Initialize MLPs
-DATASET = [[random.uniform(0.1, 1), random.uniform(0.1, 1)] for i in range(1000)] # Create the training inputs
+multipliers = [NeuralNetwork(2, [random.randint(1, 4) for i in range(random.randint(1, 2))] + [1], random.uniform(0.3, 0.01)) for i in range(100)] # Initialize MLPs
+DATASET = [[random.uniform(0.1, 1), random.uniform(0.1, 1)] for i in range(10000)] # Create the training inputs
 TAGS = [[data[0]*data[1]] for data in DATASET] # Create the training answers
 train(multipliers, DATASET, TAGS)
 
