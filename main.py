@@ -54,21 +54,23 @@ def evaluate(NNs, inputs, expected):
     return {scorePrefix/len(inputs):NN for scorePrefix, NN in zip(scorePrefixes, NNs)}
 
 
-multipliers = [NeuralNetwork(2, [random.randint(1, 4) for i in range(random.randint(1, 2))] + [1], random.uniform(0.3, 0.01)) for i in range(100)] # Initialize MLPs
-DATASET = [[random.uniform(0.1, 1), random.uniform(0.1, 1)] for i in range(10000)] # Create the training inputs
-TAGS = [[data[0]*data[1]] for data in DATASET] # Create the training answers
-train(multipliers, DATASET, TAGS)
+siners = [NeuralNetwork(1, [random.randint(1, 4) for i in range(random.randint(1, 3))] + [1], random.uniform(0.001, 0.002)) for i in range(10)] # Initialize MLPs
+answerFunc = lambda x: x[0]
 
-TESTCASES = [[random.uniform(0.1, 1), random.uniform(0.1, 1)] for i in range(100)] # Create the testcases
-TESTCASE_ANSWERS = [[inputt[0]*inputt[1]] for inputt in TESTCASES] # Generate the answers to these tescases
-multipliers = evaluate(multipliers, TESTCASES, TESTCASE_ANSWERS) # Evaluate general performance
+DATASET = [[random.uniform(0.1, 1)] for i in range(1000)] # Create the training inputs
+TAGS = [[answerFunc(data)] for data in DATASET] # Create the training answers
+train(siners, DATASET, TAGS)
+
+TESTCASES = [[random.uniform(0.1, 1)] for i in range(100)] # Create the testcases
+TESTCASE_ANSWERS = [[answerFunc(inputt)] for inputt in TESTCASES] # Generate the answers to these tescases
+siners = evaluate(siners, TESTCASES, TESTCASE_ANSWERS) # Evaluate general performance
 
 
-bestScores = list(map(float, sorted(multipliers.keys())))
+bestScores = list(map(float, sorted(siners.keys())))
 print("best scores:", bestScores[:10])
 print("worst scores:", bestScores[-10:])
 
-bestAI = multipliers[bestScores[0]]
+bestAI = siners[bestScores[0]]
 print("\nbest MLP stats:")
 print("  structure -", bestAI.layers)
 print("  growth speed - ", bestAI.growthSpeed, "\n")
@@ -77,4 +79,4 @@ while True: # Test the best MLP
     inputs = list(map(float, input("Enter AI inputs: ").split()))
     networkResults = bestAI.forward(inputs)
     print("  network results -", networkResults)
-    print("  answer score -", bestAI.answerQuality(inputs, [inputs[0]*inputs[1]]), "\n")
+    print("  answer score -", bestAI.answerQuality(inputs, [answerFunc(inputs)]), "\n")
