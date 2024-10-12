@@ -53,24 +53,35 @@ def evaluate(NNs, inputs, expected):
             scorePrefixes[i] += sum(NN.answerQuality(inputt, answer))/len(answer)
     return {scorePrefix/len(inputs):NN for scorePrefix, NN in zip(scorePrefixes, NNs)}
 
+# NETWORK PARAMETERS
+HIDDEN_LAYER_COUNT = 3
+NODES_PER_HIDDEN_LAYER = 4
+INPUT_LAYER_SIZE = 1
+OUTPUT_LAYER_SIZE = 1
+GROWTH_SPEED_BOUNDS = (0.05, 0.5)
+MLP_COUNT = 100
+answerFunc = lambda x: np.sin(x[0])
 
-siners = [NeuralNetwork(1, [random.randint(1, 4) for i in range(random.randint(1, 3))] + [1], random.uniform(0.001, 0.002)) for i in range(10)] # Initialize MLPs
-answerFunc = lambda x: x[0]
+networks = [NeuralNetwork(INPUT_LAYER_SIZE, [random.randint(1, NODES_PER_HIDDEN_LAYER) for i in range(random.randint(1, HIDDEN_LAYER_COUNT))] + [OUTPUT_LAYER_SIZE], random.uniform(GROWTH_SPEED_BOUNDS[0], GROWTH_SPEED_BOUNDS[1])) for i in range(MLP_COUNT)] # Initialize MLPs
 
-DATASET = [[random.uniform(0.1, 1)] for i in range(1000)] # Create the training inputs
+
+# TRAINING
+DATASET = [[random.uniform(0.1, 1)] for i in range(10000)] # Create the training inputs
 TAGS = [[answerFunc(data)] for data in DATASET] # Create the training answers
-train(siners, DATASET, TAGS)
+train(networks, DATASET, TAGS)
 
+
+# EVALUATION
 TESTCASES = [[random.uniform(0.1, 1)] for i in range(100)] # Create the testcases
 TESTCASE_ANSWERS = [[answerFunc(inputt)] for inputt in TESTCASES] # Generate the answers to these tescases
-siners = evaluate(siners, TESTCASES, TESTCASE_ANSWERS) # Evaluate general performance
+networks = evaluate(networks, TESTCASES, TESTCASE_ANSWERS) # Evaluate general performance
 
 
-bestScores = list(map(float, sorted(siners.keys())))
+bestScores = list(map(float, sorted(networks.keys())))
 print("best scores:", bestScores[:10])
 print("worst scores:", bestScores[-10:])
 
-bestAI = siners[bestScores[0]]
+bestAI = networks[bestScores[0]]
 print("\nbest MLP stats:")
 print("  structure -", bestAI.layers)
 print("  growth speed - ", bestAI.growthSpeed, "\n")
