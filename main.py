@@ -1,6 +1,75 @@
 import numpy as np
 import random
 
+"""
+                                            --  HOW MLP's WORK  --
+
+-- Variable definitions --
+
+Say we have an input layer at depth 0, hidden layers at depths 1 to L-1, and an output layer at depth L. 
+This hypothetical MLP does not use batch training. Let's define the following variables:
+A(n): The vector with the activation values for each neuron at layer n
+W(n): The matrix with the weights that provide the activations for layer n of the network ; W(n)_ij connects the A(n)_i neuron to the A(n-1)_j neuron
+B(n): The vector with the biases that provide the activations for layer n of the network
+Z(n): The vector corresponding to the result of W(L)A(L-1) + B(L)
+C: The loss vector, calculated using mean squared error between the output layer and tags
+F(x): The activation function
+F'(x): The derivative of the activation function
+
+
+-- Forward propagation --
+
+The inputs are fed as activations of the A(0) layer
+To calculate the activation of the following layer A(1), or in general any A(n) from A(n-1), we do:
+Z(n) = W(n)A(n-1) + B(n)
+A(n) = F(Z(N))
+
+The matrices W and the Biases B serve as a form of parameters that we can tweak to adjust the behavior of the MLP
+The MLP is basically a huge function that can adjust itself by tweaking its own weights and biases
+We can calculate the accuracy, aka the Cost (C) of the MLP using the mean squared error between the outputs (O) and expected results (Y): C(W, B) = (Y - O(W, B))^2
+
+
+-- Backward propagation --
+
+The goal of backprop is to train the AI using datasets with answers attached to inputs. 
+To do this training, we calculate the gradient of the weights and biases in relation to the cost function (∇C(W, B)).
+This gradient, if added to the weights and biases themselves, allows for gradient descent, which converges toward the local minima of the cost function
+Our objective is therefore to calculate dC/dW and dC/dB
+Note that everytime I use the dY/dX notation, I am referring to a partial derivative, not a traditional one.
+
+The Error term E(n) is a substep to calculating dC/dW or dC/dB, it corresponds to dC/dZ(n)
+To calculate the error term E(L), we do:
+E(L)_i = dC_i/dA(L)_i * dA(L)_i/dZ(L)_i = dC_i/dA(L)_i *  F'(Z(L)_i)
+This can be generalized to a vector operation:
+E(L) = (C-A(L))F'(Z(L))
+This should give us a vector of length len(A(L)).
+
+Now that we have the error term for the output layer, we calculate it recursively for all other layers
+To calculate the next error term E(L-1) from E(L), or any error term E(n-1) from E(n), we do:
+E(n-1)_i = ∑_j E(n)_j * W(n)_ji
+This can be generalized via matrix-vector product:
+E(n-1) = (W(n)^T)E(n)
+This should give us a vector of length len(A(n-1))
+
+To calculate the gradient of the cost for each of the weights Ew(n), we do:
+Ew(n)_ij = E(n)_i * dZ(n)_i/dW(n)_ij = E(n)_i * A(n-1)_j
+This can be generalized to an outer product:
+Ew(n) = E(n)(A(n-1)^T)
+This should give us a matrix of dimensions len(A(n))xlen(A(n-1))
+
+To calculate the gradient of the cost for each of the biases Eb(n), we do:
+Eb(n)_i = E(n)_i * dZ(n)/dB(n) = E(n)_i
+This can be generalized to:
+Eb(n) = E(n)
+This should give us a vector of length len(A(n))
+
+Now that we know both dC/dW and dC/dB, we can update their previous values:
+W(n) -= Ew(n) * growth_factor
+B(n) -= Eb(n) * growth_factor
+
+"""
+
+
 class NeuralNetwork:
     def __init__(self, inputSize, layerSizes, growthSpeed):
         self.biases = [np.random.rand(layerSize) for layerSize in layerSizes]
