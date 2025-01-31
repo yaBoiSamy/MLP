@@ -1,0 +1,5 @@
+# Ignore all .txt files
+*.txt
+
+# Ignore the specific Python file
+Test.py
